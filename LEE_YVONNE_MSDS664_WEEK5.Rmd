@@ -1,0 +1,70 @@
+---
+title: 'Yvonne Lee: MSDS 664 Week 5'
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+## Assignment #5: Apriori Algorithm using bxBookRatings data.
+
+```{r}
+load("C:/Users/ylee_/Desktop/.RData")
+```
+
+```{r}
+head(bxBookRatings)
+```
+```{r}
+head(bxUsers)
+```
+```{r}
+head(bxBooks)
+```
+```{r}
+str(bxBookRatings)
+```
+```{r}
+str(bxUsers)
+```
+```{r}
+str(bxBooks)
+```
+```{r}
+hist(as.numeric(bxUsers$Age),
+     main="Users' Age",
+     xlab = "Age")
+```
+```{r}
+library(dplyr)
+library(ggplot2)
+library(arules)
+library(arulesViz)
+```
+```{r error=TRUE}
+top20 <- bxBookRatings %>% group_by(ISBN) %>% summarise(n=n()) %>% top_n(n=20) %>% arrange(n)
+```
+```{r error=TRUE}
+top20 <- merge(top20,bxBooks[,c("ISBN","Book.Title")])
+ggplot(top20,aes(x=reorder(Book.Title,n),n))+ geom_bar(stat='identity')+ theme(axis.text.x=element_text(angle=90, hjust=1))+ coord_flip() + labs(x = "Book Title",y="Number of Ratings")
+```
+```{r error=TRUE}
+rules <- apriori(bxBookRatings, parameter=list(support=0.000005, confidence = 0.3, target='rules'))
+```
+```{r}
+rules.sorted <- sort(rules, by = "lift")
+```
+
+```{r error=TRUE}
+inspect(rules.sorted[1:1])
+```
+```{r error=TRUE}
+plot(rules.sorted[1:10])
+```
+```{r error=TRUE}
+plot(rules[1:10], method="paracoord", control=list(reorder=TRUE))
+```
+### It seems that for the amount of data being processed, the minimum value for support and confidence needs to be pretty low. Using the initial suppor = 0.05 and confidence = 0.7 did not result in any rules to be produced. After changing support to 0.00005 and confidence to 0.3 did I finally receive results. The scatterplot seems like the most helpful showing support, confidence, and lift.
+
+## References:
+### Implementing Apriori algorithm in R. DataScience+. (n.d.). Retrieved November 23, 2021, from https://datascienceplus.com/implementing-apriori-algorithm-in-r/. 
+### SAKSHIKULSHRESHTHA. (2021, August 20). Apriori algorithm in R programming. GeeksforGeeks. Retrieved November 23, 2021, from https://www.geeksforgeeks.org/apriori-algorithm-in-r-programming/#:~:text='apriori()'%20function%20is%20in,for%20finding%20the%20association%20rules. 
